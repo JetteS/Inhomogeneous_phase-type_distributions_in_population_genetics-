@@ -1,0 +1,226 @@
+## Creating plots of the simulated density of T_Total
+## under a suddenly expanding population growth model
+
+##################################################
+## Simulating the time to the most recent 
+## common ancestor and the total branch length
+## under a model with variable population size
+##################################################
+## Name : simT
+## 
+## Author: Jette Steinbach
+## 
+## Purpose : Simulating the time to the most
+##           recent common ancestor and the total
+##           branch length.
+##
+## Input:
+## - n : a natural number representing the sample
+##       size. Must be greater than one. 
+##       Defaults to 10.
+## - out : One of the following 
+##         - 'all'
+##         - 'htimes'
+##         - 'wtimes'
+##         For further information see Output below.
+## - LambdaInv: A function that 
+##              represents the inverse of the 
+##              integrated intensity
+##              g^{-1}(t) = int_0^t lambda(u) du.
+## - ... Arguments for the function LambdaInv
+## 
+## Output: 
+## - A vector holding the following numbers:
+##   - If out = 'all', the vector includes the 
+##     holding times T_n,...,T_2 as well as the 
+##     time to the most recent common ancestor 
+##     and the total branch length. That is:
+##     res = (T_n,...,T_2, T_MRCA, T_Total).
+##   - If out = 'htimes' the vector includes the 
+##     holding times T_n,...,T_2. That is:
+##     res = (T_n,...,T_2).
+##   - If out = 'wtimes' the vector holds the 
+##     time to the most recent common ancestor 
+##     and the total branch length. That is:
+##     res = (T_MRCA, T_Total).
+
+simT <- function(n=10, out, LambdaInv,...){
+  ## Checking whether n is a positive natural number:
+  if(n <=1 | abs(n - round(n)) > .Machine$double.eps^0.5) stop("The sample size must be a natural number greater than 1.")
+  ## Checking whether out is one of 'all','htimes' and 'wtimes'.
+  if(sum(out==c('all','htimes','wtimes'))==0) stop("out must be either 'all', 'htimes' or 'wtimes.")
+  
+  ## For a sample size of n=2, all vectors are simply numbers
+  if(n==2){ 
+    
+    ## Generating one independent and identically distributed random variable
+    ## having the uniform distribution on (0,1):
+    U <- runif(n=1)
+    ## Defining the vector holding the single waiting time T_2
+    Tvec <- -log(U)
+    ## In this case, s_2 = t_2 and hence,
+    ## t_2^v = Lambda^(-1)(t_2) 
+    TVvec <- LambdaInv(Tvec,...)
+    
+  }else{
+    
+    ## Generating independent and identically distributed random variables
+    ## having the uniform distribution on (0,1):
+    U <- runif(n=(n-1))
+    ## Defining the vector holding the waiting times
+    Tvec <- replicate(n=(n-1),NA)
+    ## Generating t_j = -2*log(U_j)/(j*(j-1)) for j=2,3,...,n
+    for (j in n:2) {
+      
+      Tvec[n-j+1] <- -2*log(U[j-1])/(j*(j-1))
+    }
+    
+    ## Forming s_n = t_n and s_j = t_n +...+ t_j for j=2,3,...,n-1
+    Svec <- cumsum(Tvec)
+    ## Computing t_n^v = Lambda^(-1)(s_n) 
+    ## and t_j^v = Lambda^(-1)(s_j)- Lambda^(-1)(s_(j+1))
+    ## for j=2,3,...,n-1
+    TVvec <- LambdaInv(Svec,...) - c(0,LambdaInv(Svec,...)[1:(n-2)])
+  }
+  
+  if(out=="all"){
+    
+    res <- c(TVvec, sum(TVvec), sum((n:2)*TVvec)) 
+    names(res) <- c(paste("T_",n:2),"T_MRCA","T_Total")
+    
+  }else if(out == "htimes"){
+    
+    res <- TVvec
+    names(res) <- paste("T_",n:2)
+    
+  }else{
+    
+    res <- c(sum(TVvec), sum((n:2)*TVvec)) 
+    names(res) <- c("T_MRCA","T_Total")
+  }
+  
+  return(res)
+}
+
+
+##################################################
+## Suddenly expanding population
+##################################################
+
+##################################################
+## The inverse of the integrated intensity under 
+## a model with a suddenly expanding population
+##################################################
+## Name : LambdaInvSEP
+## 
+## Author: Jette Steinbach
+## 
+## Purpose : Compute the value of the inverse of
+##           the integrated intensity 
+##           Lambda(t) = int_0^t lambda(u) du.
+##
+## Input:
+## - t : a vector holding the time points measured
+##       in units of N generations at which 
+##       the function should be evaluated.
+## - a : a number between 0 and 1 that represents
+##       the factor by which the population size
+##       decreases.
+## - b : The generation scaled in units of N 
+##       generations where the expansion occurred.
+## Output: 
+## - The value(s) of the the inverse of the integrated
+##   intensity evaluated at the point(s) (in) t.
+
+LambdaInvSEP <- function(t, a, b){
+  ## Checking whether t is a positive real vector
+  if(sum(t <= 0)>0) stop("All time points in t must be positive real numbers.")
+  ## Checking whether a is a real number between 0 and 1
+  if(a <= 0) stop("The factor a must be strictly positive.")
+  if(a > 1) stop("The factor a must be less than or equal to one.")
+  ## Checking whether b is a positive real number
+  if(b <= 0) stop("b must be a positive real number.")
+  
+  ## Defining the vector holding the results
+  res <- replicate(n=length(t), NA)
+  
+  ## Computing the inverse of the integrated intensity
+  ## for all values of t
+  for (i in 1:length(t)) {
+    
+    res[i] <- ifelse(t[i] <= b, t[i], a*t[i]-a*b+b)
+  }
+  return(res)
+}
+
+##################################################
+## Plotting the simulated density of the total
+## branch length under a model with a suddenly
+## expanding population size
+##################################################
+## Name : plot_simfTotal
+## 
+## Author: Jette Steinbach
+## 
+## Purpose : Plotting the simulated probability
+##           density function of the total branch
+##           length under a model with a suddenly 
+##           expanding population size.
+##
+## Input:
+## - n : a natural number representing the 
+##       sample size. Must be greater 
+##       than one. 
+## - a : a number between 0 and 1 that represents
+##       the factor by which the population size
+##       decreases. Defaults to 1.
+## - b : A real number that represents the
+##       generation scaled in units of N 
+##       generations where the expansions occurred.
+## Output: 
+## - A ggplot of the simulated probability density
+##   function of the total branch length.
+##
+## Remark: Requires the package gglplot2
+
+plot_simfTotal <- function(n, a, b){
+  
+  ## Simulating the waiting times once
+  Dx <- data.frame(TMRCA = simT(n=n, out = 'wtimes', LambdaInv = LambdaInvSEP, a=a, b=b)[1],
+                   TTotal = simT(n=n, out = 'wtimes', LambdaInv = LambdaInvSEP, a=a, b=b)[2])
+  ## and 10000 times more
+  for(i in 1:10000){
+    
+    Dx <- rbind(Dx, simT(n=n, out = 'wtimes', LambdaInv = LambdaInvSEP, a=a, b=b))
+  }
+  
+  ## Creating a simple ggplot
+  p <- ggplot(Dx, aes(x=TTotal)) + 
+    ggtitle(expression(paste("Probability density function for ", tau["Total"])), 
+            subtitle=paste("n =",n,", b =",b, "and a =", a)) + 
+    xlab("x") + 
+    ylab(expression(paste(f[tau["Total"]], "(x)"))) +
+    theme_minimal() + 
+    geom_density(color = "red") +
+    geom_histogram(aes(y=..density..), bins = 60, alpha=0.5) +
+    ylim(0,1) +
+    xlim(0,15)
+  
+  print(p)
+}
+
+## Plotting the simulated density for n=2,5,10,15 and a=b=1
+plot_simfTotal(n=2,a=1,b=1)
+plot_simfTotal(n=5,a=1,b=1)
+plot_simfTotal(n=10,a=1,b=1)
+plot_simfTotal(n=15,a=1,b=1)
+
+## lotting the simulated density for n=2,10, a=0.2,0.8 and b=1,3.
+plot_simfTotal(n=2,a=0.2,b=1)
+plot_simfTotal(n=10,a=0.2,b=1)
+plot_simfTotal(n=2,a=0.2,b=3)
+plot_simfTotal(n=10,a=0.2,b=3)
+plot_simfTotal(n=2,a=0.8,b=1)
+plot_simfTotal(n=10,a=0.8,b=1)
+plot_simfTotal(n=2,a=0.8,b=3)
+plot_simfTotal(n=10,a=0.8,b=3)
