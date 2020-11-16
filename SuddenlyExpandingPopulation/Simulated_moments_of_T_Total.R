@@ -72,5 +72,7 @@ plot_mvTTotal <- function(n, a=1, b){
 plot_mvTTotal(n=2:20,a=1, b=1)
 plot_mvTTotal(n=2:20,a=0.2,b=1)
 plot_mvTTotal(n=2:20,a=0.2,b=3)
+plot_mvTTotal(n=2:20,a=0.5,b=1)
+plot_mvTTotal(n=2:20,a=0.5,b=3)
 plot_mvTTotal(n=2:20,a=0.8,b=1)
 plot_mvTTotal(n=2:20,a=0.8,b=3)
