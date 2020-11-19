@@ -212,7 +212,7 @@ plot_simfTotal(n=5,a=1,b=1)
 plot_simfTotal(n=10,a=1,b=1)
 plot_simfTotal(n=15,a=1,b=1)
 
-## olotting the simulated density for n=2,10, a=0.2,0.8 and b=1,3.
+## plotting the simulated density for n=2,10, a=0.2,0.8 and b=1,3.
 plot_simfTotal(n=2,a=0.2,b=1)
 plot_simfTotal(n=10,a=0.2,b=1)
 plot_simfTotal(n=2,a=0.2,b=3)
