@@ -11,9 +11,9 @@
 ## Author: Jette Steinbach
 ## 
 ## Purpose : Compute the mean and variance 
-##          of the time to the most recent 
-##          common ancestor under an analytically
-##          convenient population growth model.
+##           of the time to the most recent 
+##           common ancestor under an analytically
+##           convenient population growth model.
 ##
 ## Input:
 ## - n : a natural number representing the sample
@@ -25,7 +25,7 @@
 ## Output: 
 ## - The mean and variance of the time to the most
 ##   recent common ancestor for a population of size 
-##   n
+##   n.
 ##
 ## Remark: Requires the package expm.
 
@@ -92,7 +92,7 @@ mvTMRCA <- function(n=10, b){
 ##   the time to the most recent common ancestor.
 ##
 ## Remark: Requires the package gglplot2, ggpubr,
-## RColorBrewer and tidyr
+## RColorBrewer and tidyr.
 
 plot_mvTMRCA <- function(n, b){
   
