@@ -84,12 +84,12 @@ simT <- function(n=10, out, LambdaInv,...){
   if(out=="all"){
     
     res <- c(rev(TVvec), sum(TVvec), sum((n:2)*TVvec)) 
-    names(res) <- c(paste("T_",2:n),"T_MRCA","T_Total")
+    names(res) <- c(paste0("T_",2:n),"T_MRCA","T_Total")
     
   }else if(out == "htimes"){
     
     res <- rev(TVvec)
-    names(res) <- paste("T_",2:n)
+    names(res) <- paste0("T_",2:n)
     
   }else{
     
