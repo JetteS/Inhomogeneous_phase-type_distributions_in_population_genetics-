@@ -29,7 +29,7 @@
 ##       decreases. Defaults to 1.
 ## - b : The generation scaled in units of N 
 ##       generations where the expansion occurred.
-##       Defaults to 0.05.
+##       Defaults to 1.
 ## Output: 
 ## - The value(s) of the probability density function 
 ##   evaluated at the point(s) (in) x.
